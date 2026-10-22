@@ -35,3 +35,33 @@ dsh plugin install dsh-purge-community
 - 本仓库不是上游官方发布，不代表原作者立场。
 - 本仓库免费提供，不用于付费转售。
 - 若上游更新，可自行同步：把新版本覆盖进来后提交即可。
+
+## 发布新版本
+
+本仓库自带发版脚本，一条命令完成「打包 → 校验 → 建 release → 上传附件」。
+
+Windows：
+``powershell
+pwsh scripts/release-mirror.ps1 -DryRun    # 先看会发生什么
+pwsh scripts/release-mirror.ps1            # 正式发布
+``
+
+Linux / macOS / Git Bash：
+``bash
+./scripts/release-mirror.sh --dry-run
+./scripts/release-mirror.sh
+``
+
+流程：
+1. 改 package.json 的 ersion
+2. 提交并 push
+3. 运行上面的脚本
+4. 脚本会自动：
+pm pack → 生成 SHA256SUMS.txt → 读取 package.json 的 epository.url 定位仓库 → 从 git credential 取 GitHub 凭据 → 创建 X.Y.Z release → 上传 tgz 与校验清单
+
+可选参数：
+- --version X.Y.Z / -Version X.Y.Z：不依赖 package.json 指定版本
+- --skip-pack / -SkipPack：复用已有 tgz
+- --dry-run / -DryRun：只打包和打印，不改远程
+
+前提：本地至少 git push 过一次，让 Windows 凭据管理器 / git credential 保存 GitHub 凭据；Linux 下可用 GITHUB_TOKEN 环境变量或 gh auth login。
