@@ -95,8 +95,8 @@
     },
     "install": {
       "preferred": "tarball",
-      "tarball": "https://github.com/kingcharleslzy-ai/dsh-purge/releases/latest/download/dsh-purge-community-1.6.41.tgz",
-      "git": "https://github.com/kingcharleslzy-ai/dsh-purge.git"
+      "tarball": "https://github.com/haihaiaicode/dsh-purge-mirror/releases/latest/download/dsh-purge-community-1.6.41.tgz",
+      "git": "https://github.com/haihaiaicode/dsh-purge-mirror.git"
     }
   },
   "publishConfig": {

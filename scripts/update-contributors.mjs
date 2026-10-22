@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repository = process.env.GITHUB_REPOSITORY || 'kingcharleslzy-ai/dsh-purge';
+const repository = process.env.GITHUB_REPOSITORY || 'haihaiaicode/dsh-purge-mirror';
 if (!/^[\w.-]+\/[\w.-]+$/.test(repository)) throw Error('Invalid repository');
 const start = '<!-- CONTRIBUTORS:START -->', end = '<!-- CONTRIBUTORS:END -->';
 const snapshot = path.join(root, '.github/contributors.json');

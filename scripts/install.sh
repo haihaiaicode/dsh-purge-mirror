@@ -52,6 +52,6 @@ TMP=$(mktemp -d "${TMPDIR:-/tmp}/purge-bootstrap.XXXXXX")
 trap 'rm -rf "$TMP"' 0
 trap 'exit 130' INT
 trap 'exit 143' TERM
-curl -fsSL --connect-timeout 20 --max-time 90 https://raw.githubusercontent.com/kingcharleslzy-ai/dsh-purge/master/scripts/bootstrap-install.mjs -o "$TMP/bootstrap-install.mjs"
+curl -fsSL --connect-timeout 20 --max-time 90 https://raw.githubusercontent.com/haihaiaicode/dsh-purge-mirror/master/scripts/bootstrap-install.mjs -o "$TMP/bootstrap-install.mjs"
 if [ -n "${PURGE_VERSION:-}" ]; then set -- "--version=$PURGE_VERSION" "$@"; fi
 ELECTRON_RUN_AS_NODE=1 "$RUNTIME" "$TMP/bootstrap-install.mjs" "$@"

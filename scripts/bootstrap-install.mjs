@@ -7,7 +7,7 @@ import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
 const exec = promisify(execFile);
-const repo = "kingcharleslzy-ai/dsh-purge";
+const repo = "haihaiaicode/dsh-purge-mirror";
 const hosts = new Set(["api.github.com", "github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com"]);
 
 // Keep this module self-contained: the raw installer runs before dependencies exist.
