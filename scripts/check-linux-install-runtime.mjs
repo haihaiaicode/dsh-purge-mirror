@@ -1,0 +1,60 @@
+/** Explicit CI integration: isolated official npm host, no service/model/restart. */
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {bootstrapInstall} from './bootstrap-install.mjs';
+import {Maintenance, validateArchive} from '../lib/community.js';
+import {verifyInstalledPackage} from '../lib/rollback-transaction.js';
+
+if(process.platform!=='linux'||process.getuid?.()===0) throw Error('Run as a non-root Linux user');
+const fixture=process.env.PURGE_TEST_LINUX_ROOT;
+if(!fixture || !fs.existsSync(path.join(fixture,'.purge-test-only'))) throw Error('An explicitly marked isolated npm host is required');
+const official=fs.realpathSync(path.join(fixture,'lib/node_modules/@deepseek-ai/dsh'));
+assert(official.startsWith(fs.realpathSync(fixture)+path.sep));
+const cli=path.join(official,'lib/bin.js'),base=path.join(official,'node_modules/@deepseek-ai');
+assert.equal(JSON.parse(fs.readFileSync(path.join(official,'package.json'))).name,'@deepseek-ai/dsh');
+execFileSync(process.execPath,[new URL('./check-cordis-composition.mjs',import.meta.url).pathname],{env:{...process.env,PURGE_TEST_HOST:base},stdio:'inherit'});
+const archive=path.resolve(process.argv[2]);const metadata=await validateArchive(archive);
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'purge-linux-runtime-'));
+const home=path.join(root,'home'),userHome=path.join(root,'user');fs.mkdirSync(home);
+const env={...process.env,DSH_HOME:home,DSH_PROFILE:'web',DSH_SURFACE:'web',PURGE_DSH_CLI:cli,DSH_BASE:'',PURGE_PROFILE_DIR:''};
+execFileSync(process.execPath,[cli,'--profile','web','--dump-default-config'],{env,stdio:'pipe',timeout:120000,maxBuffer:4e6});
+const profile=path.join(home,'profiles/web'),prompt=path.join(home,'prompt-inject.md');
+fs.writeFileSync(prompt,'private isolated fixture');
+const config=path.join(profile,'cordis.patch.yml');
+fs.appendFileSync(config, "\n# private isolated settings sentinel\n");
+const beforeConfig=fs.readFileSync(config);
+const modeRoot=fs.statSync(official).mode&0o777,modeBase=fs.statSync(base).mode&0o777;
+try {
+ fs.chmodSync(official,0o555);fs.chmodSync(base,0o555);
+ const result=await bootstrapInstall({home,userHome,mode:'web',profile:'web',cli,archiveFile:archive,sha256:createHash('sha256').update(fs.readFileSync(archive)).digest('hex')});
+ assert.equal(result.installed,true);
+ const launcher=path.join(userHome,'.local/bin/dsh'),selected=fs.realpathSync(launcher);
+ assert(selected.startsWith(userHome+path.sep));assert.notEqual(selected,cli);
+ const childEnv={...env,PURGE_DSH_CLI:selected};
+ const version=execFileSync(launcher,['--version'],{env:childEnv,encoding:'utf8',timeout:30000});
+ assert(version.trim());
+ Object.assign(process.env,childEnv);
+ await verifyInstalledPackage(profile,metadata);
+ const m=new Maintenance({home,profile,root:path.join(profile,'node_modules/dsh-purge-community')});
+ const snapshot=await m.backup('pr42-linux-actual-cli');
+ await m.install(archive);await verifyInstalledPackage(profile,metadata);
+ await m.rollback(snapshot.id);await verifyInstalledPackage(profile,metadata);
+ const manifest=fs.readFileSync(path.join(profile,'package.json')),lock=fs.readFileSync(path.join(profile,'pnpm-lock.yaml'));
+ m.verifier=async()=>{throw Error('injected verification failure');};
+ await assert.rejects(m.rollback(snapshot.id),/回滚前依赖、安装与清单已恢复/);
+ assert.deepEqual(fs.readFileSync(path.join(profile,'package.json')),manifest);
+ assert.deepEqual(fs.readFileSync(path.join(profile,'pnpm-lock.yaml')),lock);
+ await verifyInstalledPackage(profile,metadata);
+ assert.equal(fs.readFileSync(prompt,'utf8'),'private isolated fixture');
+ assert.deepEqual(fs.readFileSync(config),beforeConfig);
+ assert.equal(fs.statSync(official).mode&0o777,0o555);
+ assert.equal(fs.statSync(base).mode&0o777,0o555);
+ console.log(JSON.stringify({officialHost:version.trim(),userCopy:true,realBootstrap:true,import:true,rollback:true,failedRollbackRecovered:true,promptPreserved:true,sourcePermissionsPreserved:true,restartedDSH:false}));
+} finally {
+ fs.chmodSync(official,modeRoot);fs.chmodSync(base,modeBase);
+ fs.rmSync(root,{recursive:true,force:true});
+}
