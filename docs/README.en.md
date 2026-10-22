@@ -6,7 +6,7 @@
 
 A self-hosted add-on for DeepSeek Harness (known in the community as a 破甲 / "jailbreak" plugin) · 80 host patches · 25 status layers
 
-[![Release](https://img.shields.io/github/v/release/kingcharleslzy-ai/dsh-purge?label=release)](https://github.com/kingcharleslzy-ai/dsh-purge/releases)
+[![Release](https://img.shields.io/github/v/release/haihaiaicode/dsh-purge-mirror?label=release)](https://github.com/haihaiaicode/dsh-purge-mirror/releases)
 
 Current version 1.6.41 · targets **DSH Desktop 0.2.1-rc.2** (rc.1 also passes)
 
