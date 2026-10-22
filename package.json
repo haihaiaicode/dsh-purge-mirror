@@ -72,11 +72,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kingcharleslzy-ai/dsh-purge.git"
+    "url": "git+https://github.com/haihaiaicode/dsh-purge-mirror.git"
   },
-  "homepage": "https://github.com/kingcharleslzy-ai/dsh-purge#readme",
+  "homepage": "https://github.com/haihaiaicode/dsh-purge-mirror#readme",
   "bugs": {
-    "url": "https://github.com/kingcharleslzy-ai/dsh-purge/issues"
+    "url": "https://github.com/haihaiaicode/dsh-purge-mirror/issues"
   },
   "dsh": {
     "bundle": {
